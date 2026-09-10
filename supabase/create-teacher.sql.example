@@ -1,0 +1,9 @@
+-- 1) ไป Supabase Dashboard > Authentication > Users > Add user
+--    สร้างผู้ใช้ครูด้วยอีเมล/รหัสผ่าน และเปิด Auto Confirm User
+-- 2) คัดลอก UUID ของผู้ใช้ แล้วแทน YOUR_TEACHER_AUTH_USER_UUID ด้านล่าง
+-- 3) รันคำสั่งนี้ใน SQL Editor
+
+insert into public.profiles (id, role, display_name)
+values ('YOUR_TEACHER_AUTH_USER_UUID'::uuid, 'teacher', 'ชื่อครู')
+on conflict (id) do update
+set role = 'teacher', display_name = excluded.display_name;
