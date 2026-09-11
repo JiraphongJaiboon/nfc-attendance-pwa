@@ -1,3 +1,5 @@
+
+https://github.com/teanm424/test
 # NFC Attendance PWA
 
 เวอร์ชัน dependency หลักที่ล็อกไว้ใน `package.json`: Next.js 16.3.4, React 19.2.8, Supabase JS 2.115.0, `@supabase/ssr` 0.12.7, TypeScript 7.0.2 และ `xlsx` 0.18.5
