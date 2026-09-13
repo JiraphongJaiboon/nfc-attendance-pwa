@@ -53,15 +53,18 @@ export function localBangkokIso(date: string, time: string) {
 
 export function enumerateDates(from: string, to: string) {
   const result: string[] = []
-  const cursor = new Date(`${from}T00:00:00+07:00`)
-  const end = new Date(`${to}T00:00:00+07:00`)
-  while (cursor <= end && result.length < 93) {
-    const y = cursor.getFullYear()
-    const m = String(cursor.getMonth() + 1).padStart(2, '0')
-    const d = String(cursor.getDate()).padStart(2, '0')
+  const cursor = new Date(`${from}T00:00:00Z`)
+  const end = new Date(`${to}T00:00:00Z`)
+
+  while (cursor <= end && result.length < 366) {
+    const y = cursor.getUTCFullYear()
+    const m = String(cursor.getUTCMonth() + 1).padStart(2, '0')
+    const d = String(cursor.getUTCDate()).padStart(2, '0')
+
     result.push(`${y}-${m}-${d}`)
-    cursor.setDate(cursor.getDate() + 1)
+    cursor.setUTCDate(cursor.getUTCDate() + 1)
   }
+
   return result
 }
 
