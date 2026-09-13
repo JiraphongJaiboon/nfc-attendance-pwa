@@ -30,7 +30,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'ช่วงวันที่ไม่ถูกต้อง' }, { status: 400 })
   }
   const dates = enumerateDates(from, to)
-  if (dates.length > 93 || dates.at(-1) !== to) return NextResponse.json({ error: 'ส่งออกรายงานได้ครั้งละไม่เกิน 93 วัน' }, { status: 400 })
+  if (dates.length > 366 || dates.at(-1) !== to)
+  return NextResponse.json(
+    { error: 'ส่งออกรายงานได้ครั้งละไม่เกิน 366 วัน' },
+    { status: 400 }
+  )
 
   const admin = createAdminSupabase()
   const [{ data: classroom }, { data: students }, { data: sessions }] = await Promise.all([
