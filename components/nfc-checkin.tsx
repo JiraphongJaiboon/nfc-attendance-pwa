@@ -34,10 +34,7 @@ const canViewMaterials = true
     {result?.classroom_name && <p><strong>ห้อง:</strong> {result.classroom_name}</p>}
     {result?.checked_at && <p><strong>เวลา:</strong> {thaiDateTime(result.checked_at)}</p>}
     {result?.code === 'ALREADY_CHECKED' && result.checked_at && <p className="muted">รายการเดิมยังคงอยู่ ระบบไม่ได้สร้างข้อมูลซ้ำ</p>}
-    <div className="row" style={{ justifyContent: 'center' }}>
-      {canViewMaterials && <a className="btn btn-primary" href="/student/materials">ดูสื่อการสอนของห้อง</a>}
-      <a className="btn btn-orange" href="/student/game">เล่นเกมการเขียนภาพฉาย</a>
-    </div>
+    {canViewMaterials && <a className="btn btn-primary" href="/student/materials">ดูสื่อการสอนของห้อง</a>}
     <p className="muted">สามารถปิดหน้านี้ได้ หรือเปิดสื่อการสอนที่ครูเตรียมไว้</p>
   </div>
 }

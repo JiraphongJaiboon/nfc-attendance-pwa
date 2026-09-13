@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function StudentLogin({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const query = await searchParams
-  const nextPath = query.next ? safeNextPath(query.next) : '/student'
+  const nextPath = safeNextPath(query.next ?? null)
   const { user, profile } = await getCurrentUser()
   if (user && profile?.role === 'student') redirect(nextPath)
   return <main className="page-center"><section className="login-card stack">

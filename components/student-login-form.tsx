@@ -20,6 +20,6 @@ export function StudentLoginForm({ nextPath }: { nextPath: string }) {
     <label>รหัสนักเรียน<input name="studentCode" inputMode="text" autoComplete="username" required /></label>
     <label>PIN<input name="pin" type="password" inputMode="numeric" pattern="[0-9]{6,}" minLength={6} autoComplete="current-password" required /></label>
     {error && <div className="message message-error" role="alert">{error}</div>}
-    <button className="btn btn-primary" disabled={loading}>{loading ? 'กำลังตรวจสอบ…' : 'เข้าสู่ระบบนักเรียน'}</button>
+    <button className="btn btn-primary" disabled={loading}>{loading ? 'กำลังตรวจสอบ…' : 'เข้าสู่ระบบและกลับไปเช็กชื่อ'}</button>
   </form>
 }
