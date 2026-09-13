@@ -25,8 +25,8 @@ export function NfcCheckin({ token }: { token: string }) {
   }, [token])
 
   if (loading) return <div className="stack" style={{textAlign: 'center'}}><div className="brand-mark" style={{margin: '0 auto'}}>NFC</div><h1>กำลังตรวจสอบการเช็กชื่อ…</h1><p className="muted">ระบบใช้เวลาจากเซิร์ฟเวอร์ ไม่ใช้เวลาจากโทรศัพท์</p></div>
-  const success = result?.ok
-  const canViewMaterials = result?.ok || result?.code === 'ALREADY_CHECKED'
+const success = result?.ok
+const canViewMaterials = true
   return <div className="stack" style={{textAlign: 'center'}}>
     <div className="brand-mark" style={{margin: '0 auto', background: success ? 'var(--green)' : 'var(--red)'}}>{success ? '✓' : '!'}</div>
     <h1 className="brand-title">{success ? (result.status === 'late' ? 'เช็กชื่อสำเร็จ — มาสาย' : 'เช็กชื่อสำเร็จ') : 'ไม่สามารถเช็กชื่อได้'}</h1>
