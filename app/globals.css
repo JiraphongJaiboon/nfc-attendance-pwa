@@ -156,3 +156,30 @@ textarea:focus { outline: 3px solid rgba(243, 107, 33, .25); outline-offset: 2px
   .media-preview, .media-placeholder { height: 190px; }
   .student-content { padding: 10px; }
 }
+
+/* Student menu + tabs */
+.student-tabs { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: white; border: 1px solid var(--gray-200); border-radius: 14px; padding: 8px; position: sticky; top: 8px; z-index: 20; box-shadow: 0 5px 18px rgba(16,24,40,.05); }
+.student-tab { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 9px; padding: 8px 12px; font-weight: 800; color: var(--gray-700); }
+.student-tab:hover { background: var(--gray-100); }
+.student-tab-active { background: var(--green-soft); color: var(--green-dark); }
+.student-tab-logout { margin-left: auto; }
+.student-tab-logout .btn { min-height: 40px; }
+.student-hero { background: linear-gradient(135deg, var(--orange-soft), var(--green-soft)); }
+.student-choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.student-choice-card { background: white; border: 2px solid var(--gray-200); border-radius: 20px; padding: 22px; min-height: 240px; display: flex; flex-direction: column; gap: 14px; transition: transform .12s ease, box-shadow .18s ease, border-color .18s ease; }
+.student-choice-card:hover { transform: translateY(-2px); border-color: var(--green); box-shadow: var(--shadow); }
+.student-choice-game:hover { border-color: var(--orange); }
+.student-choice-icon { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; font-size: 32px; background: var(--green-soft); }
+.student-choice-game .student-choice-icon { background: var(--orange-soft); }
+.student-choice-card h2 { margin: 0 0 6px; font-size: 24px; }
+.student-choice-card p { margin: 0; color: var(--gray-500); line-height: 1.65; }
+.student-choice-arrow { margin-top: auto; font-weight: 900; color: var(--green); }
+.student-choice-game .student-choice-arrow { color: var(--orange-dark); }
+@media (max-width: 700px) {
+  .student-choice-grid { grid-template-columns: 1fr; }
+  .student-choice-card { min-height: 200px; }
+  .student-tabs { top: 4px; }
+  .student-tab { flex: 1 1 auto; font-size: 13px; padding: 7px 8px; }
+  .student-tab-logout { width: 100%; margin-left: 0; }
+  .student-tab-logout .btn { width: 100%; }
+}

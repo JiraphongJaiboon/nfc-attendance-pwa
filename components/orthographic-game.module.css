@@ -1,0 +1,150 @@
+.game {
+  display: grid;
+  gap: 16px;
+}
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, #fff7ef, #eef9f2);
+  border: 1px solid #dde1e7;
+  border-radius: 20px;
+  padding: 20px;
+}
+.hero h1 { margin: 6px 0 4px; font-size: 28px; }
+.hero p { margin: 0; color: #667085; }
+.scoreBox {
+  min-width: 145px;
+  background: white;
+  border: 1px solid #dde1e7;
+  border-radius: 16px;
+  padding: 12px 16px;
+  text-align: center;
+}
+.scoreBox span { display: block; font-size: 12px; color: #667085; }
+.scoreBox strong { display: block; font-size: 28px; color: #167c3a; }
+.progress {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eef0f3;
+}
+.progress > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #f36b21, #167c3a);
+  border-radius: inherit;
+  transition: width .25s ease;
+}
+.questionCard {
+  background: white;
+  border: 1px solid #dde1e7;
+  border-radius: 20px;
+  padding: 18px;
+  display: grid;
+  gap: 16px;
+  box-shadow: 0 4px 18px rgba(16,24,40,.05);
+}
+.questionHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.questionHead h2 { margin: 4px 0 0; font-size: 22px; }
+.viewBadge {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fff2e8;
+  color: #c94b0b;
+  font-size: 13px;
+  font-weight: 800;
+}
+.stage {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #dde1e7;
+  border-radius: 16px;
+  background: radial-gradient(circle at 50% 20%, #ffffff 0, #f7f8fa 60%, #eef0f3 100%);
+  overflow: hidden;
+}
+.isoSvg { width: min(100%, 440px); height: 260px; display: block; }
+.choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.choice {
+  min-height: 150px;
+  border: 2px solid #dde1e7;
+  border-radius: 16px;
+  background: white;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+  place-items: center;
+  transition: border-color .15s ease, transform .08s ease, box-shadow .15s ease;
+}
+.choice:hover:not(:disabled) { border-color: #f36b21; box-shadow: 0 5px 16px rgba(16,24,40,.07); }
+.choice:active:not(:disabled) { transform: translateY(1px); }
+.choiceCorrect { border-color: #167c3a; background: #f3fbf6; }
+.choiceWrong { border-color: #c62828; background: #fff5f5; }
+.choiceLabel { font-size: 13px; font-weight: 800; color: #344054; }
+.projection { width: 150px; height: 105px; display: block; }
+.feedback {
+  border-radius: 14px;
+  padding: 13px 15px;
+  font-weight: 700;
+}
+.good { background: #e8f6ed; color: #0c5b29; border: 1px solid #c8e9d3; }
+.bad { background: #ffebee; color: #8b1d1d; border: 1px solid #ffcdd2; }
+.explain { margin-top: 5px; font-weight: 400; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.primary, .secondary {
+  border: 0;
+  border-radius: 11px;
+  min-height: 44px;
+  padding: 10px 16px;
+  font-weight: 800;
+}
+.primary { background: #167c3a; color: white; }
+.secondary { background: #eef0f3; color: #101828; }
+.finish {
+  text-align: center;
+  background: white;
+  border: 1px solid #dde1e7;
+  border-radius: 20px;
+  padding: 30px 20px;
+}
+.finishIcon { font-size: 52px; }
+.finish h2 { margin: 8px 0; font-size: 28px; }
+.finalScore { font-size: 40px; font-weight: 900; color: #167c3a; }
+.legend {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.legend > div {
+  border: 1px solid #dde1e7;
+  background: white;
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 13px;
+  color: #344054;
+}
+.legend strong { display: block; margin-bottom: 3px; color: #101828; }
+@media (max-width: 700px) {
+  .hero h1 { font-size: 23px; }
+  .scoreBox { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+  .scoreBox span, .scoreBox strong { display: inline; }
+  .choices { grid-template-columns: 1fr; }
+  .choice { min-height: 135px; }
+  .legend { grid-template-columns: 1fr; }
+  .stage { min-height: 230px; }
+  .isoSvg { height: 230px; }
+}
