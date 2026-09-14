@@ -1,5 +1,6 @@
 'use client'
-
+import * as tus from 'tus-js-client'
+import { publicEnv } from '@/lib/env'
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { useClassroom } from '@/components/teacher-shell'
 import { apiFetch } from '@/lib/api'
@@ -8,7 +9,59 @@ import { materialTypeLabel, youtubeEmbedUrl } from '@/lib/media'
 import type { LearningMaterial, LearningMaterialType } from '@/types/database'
 
 type SourceMode = 'url' | 'file'
+function uploadLargeFile(
+  file: File,
+  path: string,
+  token: string,
+  onProgress: (percent: number) => void,
+) {
+  const { url } = publicEnv()
+  const projectId = new URL(url).hostname.split('.')[0]
 
+  return new Promise<void>((resolve, reject) => {
+    const upload = new tus.Upload(file, {
+      endpoint: `https://${projectId}.storage.supabase.co/storage/v1/upload/resumable`,
+
+      retryDelays: [0, 3000, 5000, 10000, 20000],
+
+      headers: {
+        'x-signature': token,
+        'x-upsert': 'false',
+      },
+
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+
+      metadata: {
+        bucketName: 'teaching-media',
+        objectName: path,
+        contentType: file.type || 'application/octet-stream',
+        cacheControl: '3600',
+      },
+
+      chunkSize: 6 * 1024 * 1024,
+
+      onError(error) {
+        reject(error)
+      },
+
+      onProgress(bytesUploaded, bytesTotal) {
+        const percent =
+          bytesTotal > 0
+            ? Math.round((bytesUploaded / bytesTotal) * 100)
+            : 0
+
+        onProgress(percent)
+      },
+
+      onSuccess() {
+        resolve()
+      },
+    })
+
+    upload.start()
+  })
+}
 export function MaterialManager() {
   const { selectedId, selectedClassroom } = useClassroom()
   const [materials, setMaterials] = useState<LearningMaterial[]>([])
