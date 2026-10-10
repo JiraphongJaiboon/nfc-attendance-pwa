@@ -11,5 +11,5 @@ export default async function StudentMaterialsPage() {
  if (profile?.role !== 'student') {
   redirect('/student/login?next=/student/materials')
 }
-  return <main className="student-content"><div className="student-content-inner stack"><div className="row" style={{ justifyContent: 'flex-end' }}><LogoutButton /></div><StudentMaterials /></div></main>
+  return <main className="student-content"><div className="student-content-inner stack"><div className="row" style={{ justifyContent: 'space-between' }}><a className="btn btn-orange btn-sm" href="/student/games">🎮 เล่นเกม</a><LogoutButton /></div><StudentMaterials /></div></main>
 }
