@@ -35,7 +35,7 @@ const canViewMaterials = true
     {result?.checked_at && <p><strong>เวลา:</strong> {thaiDateTime(result.checked_at)}</p>}
     {result?.code === 'ALREADY_CHECKED' && result.checked_at && <p className="muted">รายการเดิมยังคงอยู่ ระบบไม่ได้สร้างข้อมูลซ้ำ</p>}
     {canViewMaterials && <a className="btn btn-primary" href="/student/materials">ดูสื่อการสอนของห้อง</a>}
-    <a className="btn btn-orange" href="/student/games">🎮 เล่นเกมฝึกการเขียนภาพฉาย</a>
+    <a className="btn btn-orange" href="https://phoachum-learning-games.vercel.app/" target="_blank" rel="noopener noreferrer">🎮 เล่นเกมฝึกการเขียนภาพฉาย</a>
     <p className="muted">สามารถปิดหน้านี้ได้ เปิดสื่อการสอน หรือเล่นเกมฝึกทักษะได้</p>
   </div>
 }
