@@ -24,8 +24,8 @@ export default async function Home({ searchParams }: { searchParams?: Promise<{ 
       <p className="muted">โทรศัพท์เครื่องนี้เข้าสู่ระบบนักเรียนแล้ว ให้นำโทรศัพท์ไปแตะ NFC Tag ประจำตัว ระบบจะเช็กชื่อจากลิงก์บนแท็กโดยอัตโนมัติ</p>
       <div className="message message-success">Session นักเรียนยังทำงานอยู่</div>
       <a className="btn btn-primary" href="/student/materials">ดูสื่อการสอน</a>
-      <a className="btn btn-secondary" href="/student/quizzes">📝 แบบทดสอบ</a>
       <a className="btn btn-orange" href="https://phoachum-learning-games.vercel.app/" target="_blank" rel="noopener noreferrer">🎮 เล่นเกมฝึกการเขียนภาพฉาย</a>
+      <a className="btn btn-secondary" href="/student/quizzes">📝 แบบทดสอบ</a>
       <LogoutButton />
     </section></main>
   }
