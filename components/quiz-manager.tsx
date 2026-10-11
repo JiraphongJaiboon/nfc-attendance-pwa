@@ -20,6 +20,19 @@ type Quiz = {
   submitted_count: number
 }
 
+type QuizQuestion = {
+  id: string
+  position: number
+  question_text: string
+  choice_a: string
+  choice_b: string
+  choice_c: string
+  choice_d: string
+  correct_choice: 'A' | 'B' | 'C' | 'D'
+  points: number
+  explanation: string
+}
+
 type ResultRow = {
   student_id: string
   number: number
@@ -61,6 +74,9 @@ export function QuizManager() {
   const [resultsQuizId, setResultsQuizId] = useState('')
   const [results, setResults] = useState<ResultRow[]>([])
   const [resultsLoading, setResultsLoading] = useState(false)
+  const [questionsQuizId, setQuestionsQuizId] = useState('')
+  const [questions, setQuestions] = useState<QuizQuestion[]>([])
+  const [questionsLoading, setQuestionsLoading] = useState(false)
 
   const defaults = useMemo(() => {
     const open = new Date(Date.now() + 10 * 60 * 1000)
@@ -159,6 +175,29 @@ export function QuizManager() {
     }
   }
 
+  async function loadQuestions(id: string) {
+    if (questionsQuizId === id) {
+      setQuestionsQuizId('')
+      setQuestions([])
+      return
+    }
+
+    setQuestionsQuizId(id)
+    setQuestionsLoading(true)
+    setQuestions([])
+    setError('')
+
+    try {
+      const data = await apiFetch<{ questions: QuizQuestion[] }>(`/api/teacher/quizzes/${id}`)
+      setQuestions(data.questions)
+    } catch (err) {
+      setQuestionsQuizId('')
+      setError(err instanceof Error ? err.message : 'โหลดคำถามและเฉลยไม่สำเร็จ')
+    } finally {
+      setQuestionsLoading(false)
+    }
+  }
+
   return <div className="stack">
     <div>
       <h1 className="page-title">แบบทดสอบ</h1>
@@ -220,6 +259,17 @@ export function QuizManager() {
             <button className="btn btn-secondary btn-sm" type="button" onClick={() => setEditId(q.id)}>แก้ไขเวลา</button>
             <button className="btn btn-orange btn-sm" type="button" onClick={() => void patchQuiz(q.id, { isPublished: !q.is_published })}>{q.is_published ? 'ซ่อนจากนักเรียน' : 'เผยแพร่'}</button>
             <button className="btn btn-primary btn-sm" type="button" onClick={() => void loadResults(q.id)}>ดูคะแนน</button>
+            <button className="btn btn-secondary btn-sm" type="button" onClick={() => void loadQuestions(q.id)}>{questionsQuizId === q.id ? 'ซ่อนคำถาม/เฉลย' : 'ดูคำถาม/เฉลย'}</button>
+          </div>}
+
+          {questionsQuizId === q.id && <div className="stack" style={{ borderTop: '1px solid var(--gray-200)', paddingTop: 14 }}>
+            <div className="header-row">
+              <div>
+                <h3 style={{ margin: 0 }}>คำถามและเฉลย</h3>
+                <p className="muted" style={{ margin: '4px 0 0' }}>ส่วนนี้มองเห็นเฉพาะครู แสดงโจทย์ ตัวเลือก และคำตอบที่ถูกต้อง</p>
+              </div>
+            </div>
+            {questionsLoading ? <div className="loading">กำลังโหลดคำถาม…</div> : <QuizQuestionList questions={questions} />}
           </div>}
 
           {resultsQuizId === q.id && <div className="stack" style={{ borderTop: '1px solid var(--gray-200)', paddingTop: 14 }}>
@@ -229,6 +279,58 @@ export function QuizManager() {
         </section>
       })}
     </div>
+  </div>
+}
+
+
+function QuizQuestionList({ questions }: { questions: QuizQuestion[] }) {
+  if (!questions.length) return <div className="empty">ยังไม่มีคำถามในแบบทดสอบนี้</div>
+
+  return <div className="stack">
+    {questions.map((question) => {
+      const choices = [
+        ['A', question.choice_a],
+        ['B', question.choice_b],
+        ['C', question.choice_c],
+        ['D', question.choice_d],
+      ] as const
+
+      const correctText =
+        question.correct_choice === 'A' ? question.choice_a :
+        question.correct_choice === 'B' ? question.choice_b :
+        question.correct_choice === 'C' ? question.choice_c :
+        question.choice_d
+
+      return <section key={question.id} className="card stack" style={{ background: 'var(--gray-50)' }}>
+        <div className="row" style={{ justifyContent: 'space-between' }}>
+          <strong>ข้อ {question.position}</strong>
+          <span className="badge badge-gray">{question.points} คะแนน</span>
+        </div>
+
+        <div style={{ fontSize: 17, fontWeight: 700 }}>{question.question_text}</div>
+
+        <div className="stack" style={{ gap: 8 }}>
+          {choices.map(([letter, text]) => <div
+            key={letter}
+            style={{
+              padding: '10px 12px',
+              borderRadius: 10,
+              border: letter === question.correct_choice ? '2px solid var(--green)' : '1px solid var(--gray-200)',
+              background: letter === question.correct_choice ? 'rgba(22, 163, 74, .08)' : 'white',
+            }}
+          >
+            <strong>{letter}.</strong> {text}
+            {letter === question.correct_choice && <span style={{ marginLeft: 8, fontWeight: 700 }}>✓ คำตอบถูก</span>}
+          </div>)}
+        </div>
+
+        <div className="message message-success" style={{ margin: 0 }}>
+          <strong>เฉลย:</strong> {question.correct_choice}. {correctText}
+        </div>
+
+        {question.explanation && <div className="muted"><strong>คำอธิบาย:</strong> {question.explanation}</div>}
+      </section>
+    })}
   </div>
 }
 

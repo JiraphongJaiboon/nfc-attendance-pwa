@@ -8,6 +8,36 @@ function parseDate(value: unknown) {
   return Number.isNaN(d.getTime()) ? null : d
 }
 
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const admin = createAdminSupabase()
+
+  const { data: quiz, error } = await admin
+    .from('quizzes')
+    .select('id, classroom_id, title')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (error || !quiz) {
+    return NextResponse.json({ error: 'ไม่พบแบบทดสอบ' }, { status: 404 })
+  }
+
+  const auth = await ensureTeacherClassroom(quiz.classroom_id)
+  if ('error' in auth) return auth.error
+
+  const { data: questions, error: questionError } = await admin
+    .from('quiz_questions')
+    .select('id, position, question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, points, explanation')
+    .eq('quiz_id', id)
+    .order('position')
+
+  if (questionError) {
+    return NextResponse.json({ error: `โหลดคำถามไม่สำเร็จ: ${questionError.message}` }, { status: 500 })
+  }
+
+  return NextResponse.json({ quiz, questions: questions ?? [] })
+}
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const admin = createAdminSupabase()
