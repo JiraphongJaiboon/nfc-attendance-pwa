@@ -77,6 +77,7 @@ export function TeacherShell({ initialClassrooms, displayName, children }: { ini
     ['/teacher/classrooms', 'จัดการห้องเรียน'],
     ['/teacher/students', 'นักเรียนและ NFC'],
     ['/teacher/materials', 'สื่อการสอน'],
+    ['/teacher/quizzes', 'แบบทดสอบ'],
     ['/teacher/teacher-nfc', 'NFC ครู'],
     ['/teacher/reports', 'รายงาน Excel'],
     ['/teacher/settings', 'ตั้งค่า'],
