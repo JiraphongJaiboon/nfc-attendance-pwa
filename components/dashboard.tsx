@@ -32,6 +32,7 @@ export function Dashboard() {
   const [error, setError] = useState('')
   const [realtime, setRealtime] = useState(false)
   const [editorOpen, setEditorOpen] = useState(false)
+  const [attendanceEdit, setAttendanceEdit] = useState<{ student: Student; session: AttendanceSession; attendance?: AttendanceRow } | null>(null)
 
   const load = useCallback(async () => {
     if (!selectedId) { setData(null); return }
@@ -187,7 +188,7 @@ useEffect(() => {
       <div className="table-wrap" aria-label={`ตารางเช็กชื่อห้อง ${selectedClassroom.name}`}>
         <table>
           <thead><tr><th className="sticky-1" style={{minWidth:74}}>เลขที่</th><th className="sticky-2" style={{minWidth:150}}>รหัสนักเรียน</th><th style={{minWidth:230}}>ชื่อ–นามสกุล</th>{dates.map((date) => <th key={date} className={`date-head ${selectedDate === date ? 'date-selected' : ''}`}><button onClick={() => setSelectedDate(date)}>{thaiDate(date, false)}</button></th>)}</tr></thead>
-          <tbody>{data.students.map((student) => <tr key={student.id}><td className="sticky-1">{student.number}</td><td className="sticky-2">{student.student_code}</td><td>{student.prefix}{student.first_name} {student.last_name}{!student.active && <> <span className="badge badge-red">ถูกระงับ</span></>}</td>{dates.map((date) => <AttendanceCell key={date} student={student} session={sessionMap.get(date)} attendance={sessionMap.get(date) ? attendanceMap.get(`${student.id}:${sessionMap.get(date)!.id}`) : undefined} expired={sessionMap.get(date) ? Date.parse(data.serverNow) > Date.parse(sessionMap.get(date)!.close_at) : false} />)}</tr>)}</tbody>
+          <tbody>{data.students.map((student) => <tr key={student.id}><td className="sticky-1">{student.number}</td><td className="sticky-2">{student.student_code}</td><td>{student.prefix}{student.first_name} {student.last_name}{!student.active && <> <span className="badge badge-red">ถูกระงับ</span></>}</td>{dates.map((date) => <AttendanceCell key={date} student={student} session={sessionMap.get(date)} attendance={sessionMap.get(date) ? attendanceMap.get(`${student.id}:${sessionMap.get(date)!.id}`) : undefined} expired={sessionMap.get(date) ? Date.parse(data.serverNow) > Date.parse(sessionMap.get(date)!.close_at) : false} onEdit={() => { const session = sessionMap.get(date); if (session && student.active) setAttendanceEdit({ student, session, attendance: attendanceMap.get(`${student.id}:${session.id}`) }) }} />)}</tr>)}</tbody>
         </table>
       </div>
 
@@ -198,17 +199,83 @@ useEffect(() => {
     </>}
 
     {editorOpen && <SessionEditor session={selectedSession} classroomId={selectedId} date={selectedDate} onClose={() => setEditorOpen(false)} onSaved={async () => { setEditorOpen(false); await load() }} />}
+    {attendanceEdit && <AttendanceEditor target={attendanceEdit} onClose={() => setAttendanceEdit(null)} onSaved={async () => { setAttendanceEdit(null); await load() }} />}
   </>
 }
 
-function AttendanceCell({ student, session, attendance, expired }: { student: Student; session?: AttendanceSession; attendance?: AttendanceRow; expired: boolean }) {
+function AttendanceCell({ student, session, attendance, expired, onEdit }: { student: Student; session?: AttendanceSession; attendance?: AttendanceRow; expired: boolean; onEdit?: () => void }) {
   let label = '–', cls = 'cell-missing'
   if (!student.active) { label = 'ถูกระงับ'; cls = 'cell-suspended' }
   else if (!session) { label = 'ไม่มีรอบ'; cls = 'cell-none' }
   else if (attendance?.status === 'present') { label = '✓'; cls = 'cell-present' }
   else if (attendance?.status === 'late') { label = 'สาย'; cls = 'cell-late' }
   else if (!session.is_open || expired) { label = 'ปิด'; cls = 'cell-closed' }
-  return <td className={`cell-status ${cls}`}>{attendance ? <button className="clickable-cell" title="ดูเวลาเช็กชื่อ" onClick={() => alert(`เวลาเช็กชื่อ: ${thaiTime(attendance.checked_at)} น.\nสถานะ: ${attendance.status === 'late' ? 'มาสาย' : 'ตรงเวลา'}`)}>{label}</button> : label}</td>
+
+  const editable = student.active && !!session && !!onEdit
+  return <td className={`cell-status ${cls}`}>
+    {editable ? <button className="clickable-cell" title="แก้ไขการเช็กชื่อ" onClick={onEdit}>{label}</button> : label}
+  </td>
+}
+
+function AttendanceEditor({ target, onClose, onSaved }: {
+  target: { student: Student; session: AttendanceSession; attendance?: AttendanceRow }
+  onClose: () => void
+  onSaved: () => void | Promise<void>
+}) {
+  const { student, session, attendance } = target
+  const [status, setStatus] = useState<'present' | 'late' | 'missing'>(attendance?.status ?? 'present')
+  const [time, setTime] = useState(attendance ? localTime(attendance.checked_at) : localTime(session.open_at))
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    try {
+      await apiFetch('/api/teacher/attendance', {
+        method: 'POST',
+        body: JSON.stringify({ sessionId: session.id, studentId: student.id, status, time }),
+      })
+      await onSaved()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'แก้ไขการเช็กชื่อไม่สำเร็จ')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return <div className="modal-backdrop" role="dialog" aria-modal="true">
+    <div className="modal stack">
+      <div>
+        <h2 style={{margin:'0 0 4px'}}>แก้ไขการเช็กชื่อ</h2>
+        <div className="muted">เลขที่ {student.number} · {student.prefix}{student.first_name} {student.last_name} · {thaiDate(session.session_date)}</div>
+      </div>
+
+      <form className="stack" onSubmit={submit}>
+        <label>สถานะ
+          <select value={status} onChange={(e) => setStatus(e.target.value as 'present' | 'late' | 'missing')}>
+            <option value="present">ตรงเวลา</option>
+            <option value="late">มาสาย</option>
+            <option value="missing">ยังไม่เช็กชื่อ / ลบรายการเช็กชื่อ</option>
+          </select>
+        </label>
+
+        <label>เวลาเช็กชื่อ
+          <input type="text" inputMode="numeric" placeholder="08:05" pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]" maxLength={5}
+            value={time} onChange={(e) => setTime(e.target.value)} disabled={status === 'missing'} required={status !== 'missing'} />
+        </label>
+
+        {status === 'missing' && <div className="message message-error">รายการเช็กชื่อของนักเรียนในวันนั้นจะถูกลบ และกลับเป็นสถานะยังไม่เช็กชื่อ</div>}
+        {error && <div className="message message-error">{error}</div>}
+
+        <div className="row" style={{justifyContent:'flex-end'}}>
+          <button type="button" className="btn btn-secondary" onClick={onClose}>ยกเลิก</button>
+          <button className="btn btn-primary" disabled={loading}>{loading ? 'กำลังบันทึก…' : 'บันทึกการแก้ไข'}</button>
+        </div>
+      </form>
+    </div>
+  </div>
 }
 
 function SessionEditor({ session, classroomId, date, onClose, onSaved }: { session?: AttendanceSession; classroomId: string; date: string; onClose: () => void; onSaved: () => void | Promise<void> }) {
