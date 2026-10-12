@@ -88,6 +88,28 @@ export function StudentManager() {
     catch (e) { alert(e instanceof Error ? e.message : 'เปลี่ยนสถานะไม่สำเร็จ') }
   }
 
+  async function deleteStudent(student: Student) {
+    const typed = prompt(
+      `ลบนักเรียน ${student.prefix}${student.first_name} ${student.last_name} แบบถาวร\n\nลบได้เมื่อยังไม่มีประวัติเช็กชื่อ การทำแบบทดสอบ หรือประวัติย้ายห้อง\n\nเพื่อยืนยัน กรุณาพิมพ์รหัสนักเรียน: ${student.student_code}`
+    )
+    if (typed !== student.student_code) {
+      if (typed !== null) alert('รหัสนักเรียนไม่ตรง จึงยกเลิกการลบ')
+      return
+    }
+
+    setLoading(true)
+    try {
+      await apiFetch(`/api/teacher/students/${student.id}`, { method: 'DELETE' })
+      await load()
+      await reloadClassrooms()
+      alert(`ลบนักเรียน ${student.student_code} แล้ว`)
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'ลบนักเรียนไม่สำเร็จ')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (!selectedClassroom) return <div className="card empty">กรุณาสร้างและเลือกห้องเรียนก่อนเพิ่มนักเรียน</div>
   return <>
     <div className="header-row"><div><h1 className="page-title">นักเรียนและ NFC — {selectedClassroom.name}</h1><p className="page-subtitle">นักเรียนทุกคนในหน้านี้สังกัดห้องที่เลือกเท่านั้น · รหัสนักเรียนบังคับไม่ซ้ำทั้งระบบ</p></div><a className="btn btn-secondary" href="/templates/student-import-template.xlsx" download>ดาวน์โหลด Excel ตัวอย่าง</a></div>
@@ -104,7 +126,7 @@ export function StudentManager() {
     </div>
 
     <section className="card" style={{marginTop:14}}><div className="row" style={{justifyContent:'space-between'}}><h2 style={{margin:0}}>รายชื่อนักเรียน</h2><span className="badge badge-gray">{students.length} คน</span></div>
-      {loading ? <div className="loading">กำลังโหลด…</div> : <div className="table-wrap" style={{marginTop:12}}><table><thead><tr><th>เลขที่</th><th>รหัสนักเรียน</th><th>ชื่อ–นามสกุล</th><th>สถานะ</th><th>NFC Tag</th><th>จัดการ</th></tr></thead><tbody>{students.map((s) => <tr key={s.id}><td>{s.number}</td><td>{s.student_code}</td><td>{s.prefix}{s.first_name} {s.last_name}</td><td><span className={`badge ${s.active?'badge-green':'badge-red'}`}>{s.active?'ใช้งาน':'ถูกระงับ'}</span></td><td><span className={`badge ${s.nfc_status==='active'?'badge-green':s.nfc_status==='revoked'?'badge-red':'badge-gray'}`}>{s.nfc_status==='active'?'ใช้งาน':s.nfc_status==='revoked'?'ถูกยกเลิก':'ยังไม่มีแท็ก'}</span></td><td><div className="row"><button className="btn btn-secondary btn-sm" onClick={() => setEditStudent(s)}>แก้ไข/ย้าย</button><button className="btn btn-primary btn-sm" onClick={() => issue(s)} disabled={!s.active}>สร้างลิงก์</button>{s.nfc_status==='active' && <button className="btn btn-danger btn-sm" onClick={() => revoke(s)}>ยกเลิกแท็ก</button>}<button className="btn btn-ghost btn-sm" onClick={() => toggleStudent(s)}>{s.active?'ระงับ':'เปิดใช้งาน'}</button></div></td></tr>)}</tbody></table></div>}
+      {loading ? <div className="loading">กำลังโหลด…</div> : <div className="table-wrap" style={{marginTop:12}}><table><thead><tr><th>เลขที่</th><th>รหัสนักเรียน</th><th>ชื่อ–นามสกุล</th><th>สถานะ</th><th>NFC Tag</th><th>จัดการ</th></tr></thead><tbody>{students.map((s) => <tr key={s.id}><td>{s.number}</td><td>{s.student_code}</td><td>{s.prefix}{s.first_name} {s.last_name}</td><td><span className={`badge ${s.active?'badge-green':'badge-red'}`}>{s.active?'ใช้งาน':'ถูกระงับ'}</span></td><td><span className={`badge ${s.nfc_status==='active'?'badge-green':s.nfc_status==='revoked'?'badge-red':'badge-gray'}`}>{s.nfc_status==='active'?'ใช้งาน':s.nfc_status==='revoked'?'ถูกยกเลิก':'ยังไม่มีแท็ก'}</span></td><td><div className="row"><button className="btn btn-secondary btn-sm" onClick={() => setEditStudent(s)}>แก้ไข/ย้าย</button><button className="btn btn-primary btn-sm" onClick={() => issue(s)} disabled={!s.active}>สร้างลิงก์</button>{s.nfc_status==='active' && <button className="btn btn-danger btn-sm" onClick={() => revoke(s)}>ยกเลิกแท็ก</button>}<button className="btn btn-ghost btn-sm" onClick={() => toggleStudent(s)}>{s.active?'ระงับ':'เปิดใช้งาน'}</button><button className="btn btn-danger btn-sm" onClick={() => deleteStudent(s)}>ลบนักเรียน</button></div></td></tr>)}</tbody></table></div>}
     </section>
 
     {nfcUrl && <div className="modal-backdrop" role="dialog"><div className="modal stack"><h2 style={{margin:0}}>ลิงก์ NFC สร้างสำเร็จ</h2><div className="message message-success">ระบบเก็บเฉพาะ SHA-256 hash ลิงก์จริงแสดงครั้งนี้เพื่อให้ครูนำไปเขียนลง NFC Tag</div><div className="code-box">{nfcUrl}</div><div className="row" style={{justifyContent:'flex-end'}}><button className="btn btn-primary" onClick={async () => { await navigator.clipboard.writeText(nfcUrl); alert('คัดลอกแล้ว') }}>คัดลอก URL</button><button className="btn btn-secondary" onClick={() => setNfcUrl('')}>ปิด</button></div></div></div>}

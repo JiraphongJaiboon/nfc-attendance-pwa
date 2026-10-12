@@ -36,6 +36,24 @@ export function ClassroomManager() {
     catch (e) { alert(e instanceof Error ? e.message : 'เปลี่ยนสถานะไม่สำเร็จ') }
   }
 
+  async function deleteRoom(room: Classroom) {
+    const typed = prompt(
+      `ลบห้อง “${room.name}” แบบถาวร\n\nลบได้เฉพาะห้องที่ยังไม่มีนักเรียน ประวัติเช็กชื่อ สื่อการสอน แบบทดสอบ หรือประวัติย้ายห้อง\n\nเพื่อยืนยัน กรุณาพิมพ์ชื่อห้องให้ตรง: ${room.name}`
+    )
+    if (typed !== room.name) {
+      if (typed !== null) alert('ชื่อห้องไม่ตรง จึงยกเลิกการลบ')
+      return
+    }
+
+    try {
+      await apiFetch(`/api/teacher/classrooms/${room.id}`, { method: 'DELETE' })
+      await reloadClassrooms()
+      alert(`ลบห้อง “${room.name}” แล้ว`)
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'ลบห้องไม่สำเร็จ')
+    }
+  }
+
   return <>
     <div className="header-row"><div><h1 className="page-title">จัดการห้องเรียน</h1><p className="page-subtitle">แต่ละห้องมีรายชื่อ รอบเช็กชื่อ ตารางวันที่ และรายงานแยกจากกัน</p></div></div>
     <div className="grid-2">
@@ -45,9 +63,9 @@ export function ClassroomManager() {
     <section className="card" style={{marginTop:14}}><div className="row" style={{justifyContent:'space-between'}}><h2 style={{margin:0}}>ห้องที่มีสิทธิ์จัดการ</h2><span className="badge badge-gray">{classrooms.length} ห้อง</span></div>
       <div className="list" style={{marginTop:14}}>{classrooms.length ? classrooms.map((room) => <div className="list-item" key={room.id} style={{borderColor: selectedId === room.id ? 'var(--orange)' : undefined}}>
         <div><strong>{room.name}</strong> <span className={`badge ${room.is_active ? 'badge-green':'badge-red'}`}>{room.is_active ? 'เปิดใช้งาน':'ปิดใช้งาน'}</span><div className="muted" style={{marginTop:5}}>นักเรียน {room.student_count ?? 0} คน · รอบล่าสุด {room.latest_session_date ? thaiDate(room.latest_session_date, false) : 'ยังไม่มีรอบ'}</div></div>
-        <div className="row"><button className="btn btn-secondary btn-sm" onClick={() => setSelectedId(room.id)}>เลือกห้องนี้</button><button className="btn btn-secondary btn-sm" onClick={() => rename(room)}>เปลี่ยนชื่อ</button><button className={`btn btn-sm ${room.is_active ? 'btn-danger':'btn-primary'}`} onClick={() => toggle(room)}>{room.is_active ? 'ปิดห้อง':'เปิดห้อง'}</button></div>
+        <div className="row"><button className="btn btn-secondary btn-sm" onClick={() => setSelectedId(room.id)}>เลือกห้องนี้</button><button className="btn btn-secondary btn-sm" onClick={() => rename(room)}>เปลี่ยนชื่อ</button><button className={`btn btn-sm ${room.is_active ? 'btn-danger':'btn-primary'}`} onClick={() => toggle(room)}>{room.is_active ? 'ปิดห้อง':'เปิดห้อง'}</button><button className="btn btn-danger btn-sm" onClick={() => deleteRoom(room)}>ลบห้อง</button></div>
       </div>) : <div className="empty">ยังไม่มีห้องเรียน</div>}</div>
-      <p className="muted" style={{marginBottom:0}}>ระบบไม่แสดงปุ่มลบห้องที่มีข้อมูล เพื่อลดความเสี่ยงต่อประวัติการเช็กชื่อ หากต้องการยุบห้องให้ปิดใช้งานแทน ข้อมูลเดิมจะยังอยู่ครบ</p>
+      <p className="muted" style={{marginBottom:0}}>ปุ่ม “ลบห้อง” ใช้สำหรับห้องที่สร้างเกินหรือสร้างผิดและยังไม่มีข้อมูลเท่านั้น หากห้องเคยใช้งานแล้ว ระบบจะไม่ยอมลบและให้ใช้ “ปิดห้อง” แทน</p>
     </section>
   </>
 }

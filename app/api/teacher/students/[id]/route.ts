@@ -74,3 +74,57 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   await admin.auth.admin.updateUserById(id, { user_metadata: { role: 'student', display_name: displayName, student_code: updated.student_code } })
   return NextResponse.json({ student: updated })
 }
+
+
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const teacher = await requireTeacherApi()
+  if ('error' in teacher) return teacher.error
+
+  const admin = createAdminSupabase()
+  const { data: student, error: studentError } = await admin
+    .from('students')
+    .select('id, classroom_id, student_code, prefix, first_name, last_name')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (studentError || !student) {
+    return NextResponse.json({ error: 'ไม่พบนักเรียน' }, { status: 404 })
+  }
+
+  const access = await ensureTeacherClassroom(student.classroom_id)
+  if ('error' in access) return access.error
+
+  const [attendanceResult, attemptsResult, movesResult] = await Promise.all([
+    admin.from('attendance').select('id', { count: 'exact', head: true }).eq('student_id', id),
+    admin.from('quiz_attempts').select('id', { count: 'exact', head: true }).eq('student_id', id),
+    admin.from('student_classroom_moves').select('id', { count: 'exact', head: true }).eq('student_id', id),
+  ])
+
+  const checkError = attendanceResult.error || attemptsResult.error || movesResult.error
+  if (checkError) {
+    console.error('CHECK STUDENT DELETE ERROR:', checkError)
+    return NextResponse.json({ error: 'ตรวจสอบประวัตินักเรียนก่อนลบไม่สำเร็จ' }, { status: 500 })
+  }
+
+  const problems: string[] = []
+  if ((attendanceResult.count ?? 0) > 0) problems.push(`ประวัติเช็กชื่อ ${attendanceResult.count} รายการ`)
+  if ((attemptsResult.count ?? 0) > 0) problems.push(`การทำแบบทดสอบ ${attemptsResult.count} ครั้ง`)
+  if ((movesResult.count ?? 0) > 0) problems.push('ประวัติย้ายห้อง')
+
+  if (problems.length) {
+    return NextResponse.json({
+      error: `ลบนักเรียน ${student.student_code} ไม่ได้ เพราะมี ${problems.join(', ')} หากไม่ต้องการให้ใช้งาน ให้กด “ระงับ” แทนเพื่อเก็บประวัติเดิมไว้`,
+      code: 'STUDENT_HAS_HISTORY',
+    }, { status: 409 })
+  }
+
+  // ลบบัญชี Auth จะ cascade ไปยัง profiles / students / nfc_tokens
+  const { error: deleteError } = await admin.auth.admin.deleteUser(id)
+  if (deleteError) {
+    console.error('DELETE STUDENT AUTH ERROR:', deleteError)
+    return NextResponse.json({ error: `ลบนักเรียนไม่สำเร็จ: ${deleteError.message}` }, { status: 500 })
+  }
+
+  return NextResponse.json({ ok: true, deletedId: id })
+}
