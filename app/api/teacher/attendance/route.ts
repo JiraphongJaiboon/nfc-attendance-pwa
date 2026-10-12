@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { ensureTeacherClassroom } from '@/lib/auth'
 import { createAdminSupabase } from '@/lib/supabase/admin'
 
-const TIME_RE = /^(?:[01]\\d|2[0-3]):[0-5]\\d$/
+const TIME_RE = /^(?:[01]\d|2[0-3]):[0-5]\d$/
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}))
